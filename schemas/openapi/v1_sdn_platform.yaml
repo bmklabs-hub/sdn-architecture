@@ -1,0 +1,183 @@
+Design Highlights:
+Idempotency: The PUT method is used for configuration to ensure that sending the same request twice doesn't break anything.
+
+Abstraction: The UI sends high-level parameters (e.g., vlan_id, description), not raw YANG.
+
+Asynchronous: Long-running tasks return a job_id.
+
+YAML
+
+openapi: 3.0.3
+info:
+  title: SDN Platform Orchestrator API
+  description: Northbound API for ODL-based Network Management
+  version: 1.0.0
+servers:
+  - url: /api/v1
+
+tags:
+  - name: Devices
+    description: Inventory and Onboarding
+  - name: Configuration
+    description: Intent-based networking operations
+
+paths:
+  # --- DEVICE INVENTORY ---
+  /devices:
+    get:
+      summary: List all devices
+      tags: [Devices]
+      parameters:
+        - name: site_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+    
+    post:
+      summary: Onboard a new device
+      tags: [Devices]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceInput'
+      responses:
+        '201':
+          description: Device created and Mount request sent to ODL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+
+  # --- CONFIGURATION INTENT ---
+  /devices/{deviceId}/config/interfaces:
+    post:
+      summary: Configure an Interface (L2/L3)
+      tags: [Configuration]
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterfaceConfig'
+      responses:
+        '202':
+          description: Intent Accepted. Job ID returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatus'
+
+  # --- JOB TRACKING ---
+  /jobs/{jobId}:
+    get:
+      summary: Check status of async config push
+      tags: [Configuration]
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Current status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatus'
+
+components:
+  schemas:
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+        management_ip:
+          type: string
+          format: ipv4
+        status:
+          type: string
+          enum: [CONNECTED, UNREACHABLE, UNKNOWN]
+    
+    DeviceInput:
+      type: object
+      required: [hostname, management_ip, vendor, credentials]
+      properties:
+        hostname:
+          type: string
+        management_ip:
+          type: string
+        vendor:
+          type: string
+          enum: [SONiC, CISCO_IOS, JUNIPER]
+        credentials:
+          type: object
+          properties:
+            username: 
+              type: string
+            password:
+              type: string
+    
+    InterfaceConfig:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: "Ethernet4"
+        description:
+          type: string
+        enabled:
+          type: boolean
+          default: true
+        mode:
+          type: string
+          enum: [ACCESS, TRUNK, L3]
+        vlan_id:
+          type: integer
+          description: For ACCESS mode
+        trunk_vlans:
+          type: array
+          items:
+            type: integer
+          description: For TRUNK mode
+        ip_address:
+          type: string
+          format: ipv4
+          description: For L3 mode (CIDR format)
+
+    JobStatus:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PENDING, IN_PROGRESS, SUCCESS, FAILED]
+        details:
+          type: string
