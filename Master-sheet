@@ -1,0 +1,164 @@
+📘 Project Master Sheet: Multi-Tenant SDN Controller 
+
+1. Executive Summary 
+
+Goal: Develop a scalable, modular SDN Controller based on OpenDaylight (ODL) to manage a heterogeneous network environment consisting of SONiC white-box switches and legacy OEM devices. 
+
+Key Feature: Strict Multi-Tenancy support, allowing logically isolated network slices for different customers or departments on shared physical infrastructure. 
+
+ 
+ 
+
+2. High-Level Architecture (The 3-Layer Model) 
+
+A. Northbound Layer (Application Plane) 
+
+Purpose: The interface where external applications (Orchestrators, Web UIs, OSS/BSS) interact with the network. 
+
+Protocols: RESTCONF (primary), GraphQL (optional), Kafka (for event streaming). 
+
+Key Functions: 
+
+Intent-based networking (User says "Connect A to B", Controller figures out how). 
+
+Service definition (L2VPN, L3VPN). 
+
+B. Control Plane (The Core - OpenDaylight) 
+
+Purpose: The "Brain" that maintains the global view of the network and calculates logic. 
+
+Core Engine: MD-SAL (Model-Driven Service Abstraction Layer). 
+
+Clustering: 3-Node ODL Cluster for High Availability (HA) and Sharding. 
+
+C. Southbound Layer (Infrastructure Plane) 
+
+Purpose: Direct communication with network devices. 
+
+Protocols: 
+
+NETCONF/YANG: Primary configuration for SONiC and modern OEMs. 
+
+P4Runtime: For programming data plane pipelines (if P4 switches are used). 
+
+gNMI/gRPC: For high-speed telemetry streaming. 
+
+SNMP/CLI: Legacy adapters for older OEM devices. 
+
+ 
+ 
+
+3. Detailed Functional Modules 
+
+This table defines the specific software modules you need to build or configure within ODL. 
+
+Module Name 
+
+Function 
+
+Technology/Implementation 
+
+Topology Manager 
+
+Discovers and maps physical links (LLDP) and devices. 
+
+ODL L2Switch / TTP 
+
+Inventory Manager 
+
+Maintains a database of all physical assets (Serial #, OS version, Port capabilities). 
+
+MD-SAL Data Store 
+
+Tenant Manager 
+
+Creates logical partitions. Maps Tenant ID to specific VLANs/VXLANs/VRFs. 
+
+Custom Java Karaf Bundle 
+
+Path Computation (PCE) 
+
+Calculates the best path for traffic based on constraints (latency, bandwidth). 
+
+Java / Graph Algorithms (Dijkstra) 
+
+Flow Programmer 
+
+Translates high-level intent into device-specific rules (Flows/Groups). 
+
+OpenFlow Plugin or NETCONF Config push 
+
+Telemetry Collector 
+
+Ingests stats (CPU, Bandwidth) and detects anomalies. 
+
+Kafka Producer Plugin 
+
+ 
+ 
+
+4. Technology Stack & Tools 
+
+Controller Framework: OpenDaylight (Calcium or Potassium release). 
+
+Language: Java 17/21 (for ODL Bundles). 
+
+Build System: Maven. 
+
+Data Modeling: YANG (RFC 6020/7950). 
+
+Device OS: 
+
+SONiC: Using containerized microservices. 
+
+OEM: Cisco IOS-XE / Juniper Junos (simulated or physical). 
+
+Database (Internal): LevelDB or RocksDB (ODL default). 
+
+Database (External - Analytics): InfluxDB (Time-series for telemetry) or Elasticsearch. 
+
+Message Bus: Apache Kafka (for decoupling telemetry from the controller). 
+
+ 
+ 
+
+5. Multi-Tenancy Design Strategy 
+
+To achieve true multi-tenancy, we will use a Model-Driven approach: 
+
+Data Isolation: 
+
+Create a root-level YANG model: module tenant-network { list tenant { key "tenant-id"; ... } }. 
+
+Ensure API calls must include tenant-id. 
+
+Traffic Isolation (Data Plane): 
+
+L2 Separation: Unique VLAN IDs per tenant per switch. 
+
+L3 Separation: VRFs (Virtual Routing and Forwarding) on SONiC switches. 
+
+Overlay: VXLAN tunnels (VTEPs) to span across the physical fabric. 
+
+RBAC (Access Control): 
+
+Implement AAA (Authentication, Authorization, Accounting) within ODL (using Shiro or Oauth2) to ensure Tenant A cannot query Tenant B's topology. 
+
+ 
+ 
+
+6. Integration Workflow (The "Happy Path") 
+
+Onboarding: A new SONiC switch connects to the network. 
+
+Discovery: ODL detects the device via Zero Touch Provisioning (ZTP) or active scanning. 
+
+Handshake: ODL negotiates capabilities via NETCONF/YANG. 
+
+Abstraction: The Device Driver maps the specific hardware (SONiC Broadcom vs. Mellanox) to a generic "Node" object. 
+
+Provisioning: The Tenant Manager pushes a standard "Base Config" (Management IP, Default Routes). 
+
+Operation: The Tenant requests a service (e.g., "Connect VM1 to VM2"). ODL calculates the path and pushes VXLAN configuration to the relevant switches. 
+
+ 
