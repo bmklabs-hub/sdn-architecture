@@ -25,3 +25,23 @@ cd opendaylight-0.22.1
 
 # 5. Start Karaf (The Controller Shell)
 ./bin/karaf
+
+Deployment Steps
+
+Controller Version: OpenDaylight Titanium (Java 21).
+
+Base OS: Linux (Ubuntu 22.04 LTS).
+
+Key Features Installed:
+
+odl-restconf (Northbound API)
+
+odl-netconf-topology (Southbound Device Connection)
+
+odl-netconf-connector-all (Connectors for various device types)
+
+odl-restconf-openapi (The GUI/Documentation Interface)
+
+Credentials: admin / admin
+
+Management URL: http://<IP>:8181/openapi/explorer/index.html
