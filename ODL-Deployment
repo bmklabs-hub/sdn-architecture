@@ -1,0 +1,27 @@
+# 1. Update package list
+sudo apt-get update
+
+# 2. Install Java 21 JDK
+sudo apt-get install openjdk-21-jdk -y
+
+# 3. Verify Version (MUST output "21.x")
+java -version
+
+# 4. Install Maven (for building your own modules later)
+sudo apt-get install maven -y
+
+  # 1. Create project directory
+mkdir ~/sdn-project && cd ~/sdn-project
+
+# 2. Download ODL Titanium (Checking for latest Service Release)
+# Note: Links change slightly per release. This is the standard path structure.
+wget https://nexus.opendaylight.org/content/repositories/opendaylight.release/org/opendaylight/integration/opendaylight/0.22.1/opendaylight-0.22.1.tar.gz
+
+# 3. Extract
+tar -xvf opendaylight-0.22.1.tar.gz
+
+# 4. Enter directory
+cd opendaylight-0.22.1
+
+# 5. Start Karaf (The Controller Shell)
+./bin/karaf
