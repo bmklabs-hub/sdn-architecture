@@ -112,7 +112,7 @@ class GNMICollector:
         for path in paths:
             subscribe_list.append({
                 'path': path,
-                'mode': 'on_change',
+                'mode': 'ON_CHANGE',
                 'sample_interval': 10000000000  # 10 seconds in nanoseconds (fallback for SAMPLE mode)
             })
         
@@ -160,10 +160,16 @@ class GNMICollector:
             logger.error("No devices configured")
             sys.exit(1)
         
-        # In a real implementation, we would use threading or asyncio to handle
-        # multiple devices concurrently. For this basic version, we'll process
-        # them sequentially (the first device's subscription will block).
+        # NOTE: This implementation processes devices sequentially.
+        # Since gNMI subscriptions are blocking (they continuously stream data),
+        # only the FIRST device in the configuration will be actively monitored.
+        # 
+        # For production use with multiple devices, implement concurrent processing:
+        #   - Use threading.Thread for each device subscription
+        #   - Or use asyncio with async gNMI client
+        #   - Or run multiple collector instances (one per device)
         logger.info(f"Starting subscriptions for {len(devices)} device(s)")
+        logger.warning("Note: Sequential processing - only first device will be monitored in this basic implementation")
         
         for device in devices:
             try:

@@ -12,6 +12,15 @@ A Python-based gNMI (gRPC Network Management Interface) collector for network te
 - **Insecure mode**: Configured for lab environments (no TLS/SSL)
 - **YAML configuration**: Easy-to-edit device and path configurations
 
+## Important Note
+
+⚠️ **Single Device Limitation**: This basic implementation processes devices sequentially. Since gNMI subscriptions are blocking (they continuously stream data), only the **first device** in `config/devices.yaml` will be actively monitored.
+
+**For monitoring multiple devices**, use one of these approaches:
+- Run multiple collector instances (one per device)
+- Modify the collector to use threading or asyncio for concurrent subscriptions
+- Use a process manager like systemd to run multiple instances
+
 ## Requirements
 
 - Python 3.7 or higher
