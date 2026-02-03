@@ -1,0 +1,31 @@
+# gNMI Paths for Arista cEOS Devices
+# 
+# This file defines the OpenConfig and native EOS paths for telemetry
+# subscription on cEOS devices. The collector will subscribe to these
+# paths to receive interface statistics, LLDP neighbor information,
+# and ARP table updates.
+
+paths:
+  # Interface statistics and state
+  # OpenConfig path for interface operational state
+  - /interfaces/interface/state/counters
+  - /interfaces/interface/state/oper-status
+  - /interfaces/interface/state/admin-status
+  
+  # Interface Ethernet statistics
+  - /interfaces/interface/ethernet/state/counters
+  
+  # LLDP (Link Layer Discovery Protocol) neighbors
+  # OpenConfig LLDP paths for neighbor discovery
+  - /lldp/interfaces/interface/neighbors/neighbor/state
+  
+  # ARP table entries
+  # Native EOS path for ARP entries
+  - /network-instances/network-instance/protocols/protocol/arp/neighbors/neighbor/state
+  
+  # Alternative OpenConfig path for IPv4 neighbors (includes ARP)
+  - /interfaces/interface/subinterfaces/subinterface/ipv4/neighbors/neighbor/state
+  
+  # System information (optional, for context)
+  - /system/state/hostname
+  - /system/state/boot-time

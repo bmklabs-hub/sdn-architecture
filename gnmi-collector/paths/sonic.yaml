@@ -1,0 +1,39 @@
+# gNMI Paths for SONiC Devices
+#
+# This file defines the OpenConfig paths for telemetry subscription
+# on SONiC devices. SONiC implements OpenConfig models for interfaces,
+# LLDP, and ARP table information.
+
+paths:
+  # Interface statistics and state
+  # SONiC uses OpenConfig interface models
+  - /interfaces/interface/state/counters
+  - /interfaces/interface/state/oper-status
+  - /interfaces/interface/state/admin-status
+  
+  # Interface Ethernet statistics
+  - /interfaces/interface/ethernet/state/counters
+  
+  # Detailed interface counters
+  - /interfaces/interface/state/counters/in-octets
+  - /interfaces/interface/state/counters/out-octets
+  - /interfaces/interface/state/counters/in-pkts
+  - /interfaces/interface/state/counters/out-pkts
+  - /interfaces/interface/state/counters/in-errors
+  - /interfaces/interface/state/counters/out-errors
+  
+  # LLDP (Link Layer Discovery Protocol) neighbors
+  # SONiC supports OpenConfig LLDP model
+  - /lldp/interfaces/interface/neighbors/neighbor/state
+  - /lldp/interfaces/interface/neighbors/neighbor/state/system-name
+  - /lldp/interfaces/interface/neighbors/neighbor/state/port-id
+  
+  # ARP table entries
+  # OpenConfig network instance paths for ARP
+  - /network-instances/network-instance/protocols/protocol/arp/neighbors/neighbor/state
+  
+  # Alternative path for IPv4 neighbors (includes ARP entries)
+  - /interfaces/interface/subinterfaces/subinterface/ipv4/neighbors/neighbor/state
+  
+  # System information (optional, for context)
+  - /system/state/hostname
